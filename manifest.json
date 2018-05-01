@@ -4,7 +4,7 @@
     "author": "Michael DiCarlo",
     "version": "1.0",
     "manifest_version": 2,
-    "description": "Notifies users of any new comments or watches. (Only tested on Beta layout)",
+    "description": "Notifies users of any new comments or watches on Fur Affinity. (Only tested on Beta layout)",
     "permissions": ["notifications", "tabs", "storage", "http://a.facdn.net/", "https://www.furaffinity.net/", "http://www.furaffinity.net/"],
     "background": {
         "scripts": ["background.js"]
