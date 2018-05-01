@@ -1,19 +1,45 @@
 const dateFormat = "MMM Do, YYYY HH:mm a";
-const watchedSections = ['watches', 'comments-submission'];
+const refreshTimer = 60000;
 
-async function checkNotifications() {
+$(document).ready(function() {
+
+function getEnabledNotificationFields() {
+  return new Promise((resolve) => {
+    const enabledOptions = [];
+
+    chrome.storage.local.get(['watchers', 'comments'], (result) => {
+        if (result.watchers === true) {
+          enabledOptions.push('watches');
+        }
+
+        if (result.comments === true) {
+            enabledOptions.push('comments-submission');
+        }
+    });
+
+    resolve(enabledOptions);
+  });
+}
+
+function check() {
+  getEnabledNotificationFields().then(enabled => {
+    checkNotifications(enabled).then(() => {});
+  });
+}
+
+async function checkNotifications(enabledOptions = []) {
     const now = moment();
     const faPage = await getNotifications();
 
     if (!faPage.includes('Log in')) {
-        const sections = getSections(watchedSections, faPage);
+        const sections = getSections(enabledOptions, faPage);
         let notifications = [];
 
-        if (watchedSections.includes('watches')) {
+        if (enabledOptions.includes('watches')) {
             notifications = [...handleWatches($(sections).find('#messages-watches'))];
         }
 
-        if (watchedSections.includes('comments-submission')) {
+        if (enabledOptions.includes('comments-submission')) {
             const comments = await handleComments($(sections).find('#messages-comments-submission'))
             notifications = [...notifications, ...comments];
         }
@@ -29,7 +55,7 @@ async function showNotifications(notifications = []) {
         getImgData(n.iconUrl).then(data => {
             const opts = generateNotificationFields(n);
             opts.iconUrl = data;
-            chrome.notifications.create('fa-notifications', opts, () => {});
+            chrome.notifications.create(opts, () => {});
         });
     } else if (notifications.length > 1) {
         const listOptions = {
@@ -172,7 +198,7 @@ function filter(notifications, now) {
 
     notifications.forEach((n) => {
         if (n.posted && n.posted.isValid()) {
-            if (now.diff(n.posted, 'seconds') <= 60000) {
+            if (now.diff(n.posted, 'seconds') <= (refreshTimer / 1000) + 5) {
                 list.push(n);
             }
         }
@@ -217,16 +243,8 @@ chrome.storage.local.get(['watchers', 'comments'], (result) => {
     }
 });
 
-function addWatchSection(sectionName) {
-    const index = watchedSections.indexOf(sectionName);
-    if (index === -1) {
-        watchedSections.push(sectionName)
-    }
-}
+check();
 
-function removeWatchSection(sectionName) {
-    const index = watchedSections.indexOf(sectionName);
-    watchedSections.splice(index, 1);
-}
+setInterval(check, refreshTimer);
 
-setInterval(checkNotifications, 60000);
+});

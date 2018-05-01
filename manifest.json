@@ -1,16 +1,21 @@
 {
-    "name": "FA Notification Watcher",
-    "short_name": "FANW",
+    "name": "FA Monitor",
+    "short_name": "FAM",
     "author": "Michael DiCarlo",
     "version": "1.0",
     "manifest_version": 2,
-    "description": "Notifies users of any new comments or watches on Fur Affinity. (Only tested on Beta layout)",
-    "permissions": ["notifications", "tabs", "storage", "http://a.facdn.net/", "https://www.furaffinity.net/", "http://www.furaffinity.net/"],
+    "description": "Monitors and notifies users of any new notifications on their Fur Affinity account (e.g. Journals, Watches, Comments).",
+    "permissions": ["notifications", "tabs", "storage", "http://a.facdn.net/", "https://www.furaffinity.net/", "http://www.furaffinity.net/", "http://furaffinity.net/", "https://furaffinity.net/", "http://t.facdn.net/"],
     "background": {
-        "scripts": ["background.js"]
+        "scripts": ["vendors/jquery-3.3.1.min.js", "vendors/moment.min.js", "js/background.js"]
     },
     "browser_action": {
         "default_popup": "index.html"
     },
-    "offline_enabled": false
+    "options_page": "options.html",
+    "icons": {
+      "128": "images/icon128.png",
+      "16": "images/icon16.png",
+      "48": "images/icon48.png"
+   }
 }
