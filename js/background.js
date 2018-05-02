@@ -76,6 +76,21 @@ $(document).ready(function() {
         getEnabledNotificationFields().then(enabled => {
             checkNotifications(enabled);
         });
+
+        // Clear old notifications
+        chrome.notifications.getAll((notifications) => {
+          const now = moment();
+          Object.keys(notifications).forEach((notification) => {
+            try {
+              const n = JSON.parse(notification);
+              if (!n.eventTime || now.diff(moment(n.eventTime), 'minutes') >= 2) {
+                chrome.notifications.clear(notification);
+              }
+            } catch (e) {
+              chrome.notifications.clear(notification);
+            }
+          });
+        });
     }
 
     function checkNotifications(enabledOptions = []) {
@@ -178,6 +193,7 @@ $(document).ready(function() {
             getImgData(url).then(data => {
                 const opts = generateNotificationFields(n);
                 opts.iconUrl = data;
+                n.eventTime = Date.now();
                 chrome.notifications.create(JSON.stringify(n), opts, (id) => {
                     notificationsMap.set(id, n);
                 });
