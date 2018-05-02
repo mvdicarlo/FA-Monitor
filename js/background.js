@@ -24,7 +24,8 @@ $(document).ready(function() {
                     shouts: true,
                     online: false,
                     loggedIn: false,
-                    stats: {}
+                    stats: {},
+                    appEnabled: true
                 });
             }
 
@@ -36,7 +37,7 @@ $(document).ready(function() {
         return new Promise((resolve) => {
             const enabledOptions = [];
 
-            chrome.storage.local.get(['watchers', 'comments', 'shouts', 'favorites'], (result) => {
+            chrome.storage.local.get(['watchers', 'comments', 'shouts', 'favorites', 'appEnabled'], (result) => {
                 if (result.watchers === true) {
                     enabledOptions.push(NOTIFICATION_TYPES.WATCHERS);
                 }
@@ -52,9 +53,9 @@ $(document).ready(function() {
                 if (result.favorites === true) {
                     enabledOptions.push(NOTIFICATION_TYPES.FAVORITES);
                 }
-            });
 
-            resolve(enabledOptions);
+                resolve(result.appEnabled ? enabledOptions : []);
+            });
         });
     }
 

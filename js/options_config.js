@@ -24,7 +24,18 @@ $(document).ready(function() {
         });
     });
 
-    chrome.storage.local.get(['watchers', 'comments', 'shouts', 'favorites'], (result) => {
+    $('#appEnabled').click((e) => {
+        chrome.storage.local.get(['appEnabled'], (result) => {
+            chrome.storage.local.set({ appEnabled: !result.appEnabled});
+            showAppEnabledState(!result.appEnabled);
+        });
+
+    });
+
+    chrome.storage.local.get(['watchers', 'comments', 'shouts', 'favorites', 'appEnabled'], (result) => {
+
+        showAppEnabledState(result.appEnabled);
+
         if (result.watchers === false) {
             $('#watchers').attr('checked', false);
         }
@@ -41,5 +52,17 @@ $(document).ready(function() {
             $('#favorites').attr('checked', false);
         }
     });
+
+    function showAppEnabledState(enabled) {
+        if(!enabled) {
+            $('#appEnabled').removeClass('btn-danger');
+            $('#appEnabled').addClass('btn-success');
+            $('#appEnabled').text('Enable Notifications');
+        } else {
+            $('#appEnabled').removeClass('btn-success');
+            $('#appEnabled').addClass('btn-danger');
+            $('#appEnabled').text('Disable Notifications');
+        }
+    }
 
 });
