@@ -1,9 +1,10 @@
 $(document).ready(function() {
 
     function loadStats() {
-        chrome.storage.local.get(['stats', 'online', 'loggedIn'], (results) => {
+        chrome.storage.local.get(['stats', 'online', 'loggedIn', 'usingBetaLayout'], (results) => {
             results.loggedIn === true ? $('#login_error').hide() : $('#login_error').show();
             results.online === true ? $('#connection_error').hide() : $('#connection_error').show();
+            results.usingBetaLayout === true ? $('#layout_error').hide() : $('#layout_error').show();
 
             if (results.stats) {
                 const stats = results.stats;

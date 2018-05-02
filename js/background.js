@@ -27,7 +27,8 @@ $(document).ready(function() {
                     online: false,
                     loggedIn: false,
                     stats: {},
-                    appEnabled: true
+                    appEnabled: true,
+                    usingBetaLayout: false
                 });
             }
 
@@ -84,6 +85,16 @@ $(document).ready(function() {
                     chrome.storage.local.set({
                         loggedIn: true
                     });
+
+                    if (faPage.includes('loggedin_user_avatar')) {
+                        chrome.storage.local.set({
+                            usingBetaLayout: true
+                        });
+                    } else {
+                        chrome.storage.local.set({
+                            usingBetaLayout: false
+                        });
+                    }
 
                     const sections = getSections(enabledOptions, faPage);
                     let notifications = [];
@@ -335,9 +346,15 @@ $(document).ready(function() {
 
     function getUserIconLink(pageLink) {
         return new Promise((resolve) => {
-            $.get(`http://www.furaffinity.net${pageLink}`).done(page => {
+            $.get(`${defaultUrl}${pageLink}`).done(page => {
                 const html = $.parseHTML(page);
-                resolve('http:' + $(html).find('.user-nav-avatar').attr('src'));
+                let link = '';
+                if ($(html).find('.user-nav-avatar').length > 0) {
+                    link = $(html).find('.user-nav-avatar').attr('src')
+                } else {
+                    link = $(html).find('.avatar').attr('src');
+                }
+                resolve('http:' + link);
             });
         });
     }
