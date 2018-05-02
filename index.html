@@ -1,28 +1,130 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
     <head>
+        <title>FA Monitor</title>
+        <link href="vendors/bootstrap/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="vendors/ionicons/css/ionicons.min.css">
+        <script src="vendors/jquery-3.3.1.min.js"></script>
+        <script src="vendors/bootstrap/bootstrap.min.js"></script>
+        <script src="js/menu.js"></script>
+        <script src="js/options_config.js"></script>
+        <script src="vendors/moment.min.js"></script>
+        <script src="js/background.js"></script>
+        <style>
+
+            body,
+            html {
+                padding: 0;
+                margin: 0;
+                box-sizing: border-box;
+                width: 220px;
+                max-width: 220px;
+            }
+
+            body {
+                -webkit-user-drag: none;
+                -webkit-user-select: none;
+                overflow: hidden;
+            }
+
+            i {
+                margin-right: 10px;
+            }
+
+            .alert {
+                margin-bottom: 0;
+            }
+
+            /*Scrollbar Styling*/
+
+            *::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+                background-color: #777;
+            }
+
+            *::-webkit-scrollbar-thumb {
+                border-radius: 10px;
+                background: #333;
+                border: 1px solid #aaa;
+                background-color: #555;
+            }
+
+            *::-webkit-scrollbar-thumb:hover {
+                background: #fff;
+            }
+
+            *::-webkit-scrollbar-thumb:active {
+                background: linear-gradient(to left, #22ADD4, #1E98BA);
+            }
+        </style>
     </head>
 
-    <style>
-        body {
-            -webkit-user-drag: none;
-            -webkit-user-select: none;
-            overflow: hidden;
-            width: 100px;
-        }
-    </style>
-
     <body>
-      <label for="watchers">
-        <input id="watchers" type="checkbox" checked> Watchers
-      </label>
-        <br>
-        <label for="comments">
-          <input id="comments" type="checkbox" checked> Comments
-        </label>
+        <div id="login_error" class="alert alert-warning">
+            Error, you must be logged into Fur Affinity in order to properly use this extension.
+        </div>
+        <div id="connection_error" class="alert alert-danger">
+            Error, unable to connect to the Fur Affinity website. Please check your internet connection.
+        </div>
+        <div id="menu">
+            <nav class="nav nav-fill flex-column">
+                <a class="nav-link" href="http://www.furaffinity.net/msg/submissions/" target="_blank">
+                    <span class="badge mt-1 badge-secondary badge-pill float-right" id="submission_count"></span>
+                    <i class="ion-ios-cloud-upload"></i>Submissions
+                </a>
+                <a class="nav-link" href="http://www.furaffinity.net/msg/others/?#comments" target="_blank">
+                    <span class="badge mt-1 badge-secondary badge-pill float-right" id="comment_count"></span>
+                    <i class="ion-ios-chatbubble"></i>Comments
+                </a>
+                <a class="nav-link" href="http://www.furaffinity.net/msg/others/?#journals" target="_blank">
+                    <span class="badge mt-1 badge-secondary badge-pill float-right" id="journal_count"></span>
+                    <i class="ion-ios-book"></i>Journals
+                </a>
+                <a class="nav-link" href="http://www.furaffinity.net/msg/others/?#watches" target="_blank">
+                    <span class="badge mt-1 badge-secondary badge-pill float-right" id="watch_count"></span>
+                    <i class="ion-ios-eye"></i>Watches
+                </a>
+                <a class="nav-link" href="http://www.furaffinity.net/msg/others/?#favorites" target="_blank">
+                    <span class="badge mt-1 badge-secondary badge-pill float-right" id="favorite_count"></span>
+                    <i class="ion-ios-heart" style=""></i>Favorites
+                </a>
+                <a class="nav-link" href="http://www.furaffinity.net/msg/pms/" target="_blank">
+                    <span class="badge mt-1 badge-secondary badge-pill float-right" id="message_count"></span>
+                    <i class="ion-ios-email"></i>Private Messages
+                </a>
+                <a class="nav-link" href="#settingsCollapse" role="button" aria-expanded="false" aria-controls="settingsCollapse" data-toggle="collapse">
+                    <i class="ion-ios-gear"></i>Settings
+                </a>
+                <div class="collapse nav-item" id="settingsCollapse">
+                    <form>
+                        <div class="form-check">
+                            <label class="form-check-label" for="watchers">
+                                <input type="checkbox" class="form-check-input" id="watchers" checked="checked">
+                                Enable Watchers
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label" for="comments">
+                                <input type="checkbox" class="form-check-input" id="comments" checked="checked">
+                                Enable Comments
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label" for="shouts">
+                                <input type="checkbox" class="form-check-input" id="shouts" checked="checked">
+                                Enable Shouts
+                            </label>
+                        </div>
+                    </form>
 
-        <script src=js/options_config.js></script>
+                </div>
+                <a class="nav-link" href="#" id="donotdisturb">
+                    <i class="ion-android-notifications"></i>Do Not Disturb
+                </a>
+            </nav>
+        </div>
     </body>
 
 </html>
