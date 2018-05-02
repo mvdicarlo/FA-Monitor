@@ -13,7 +13,7 @@ $(document).ready(function() {
                 $('#journal_count').text(stats.journals || 0);
                 $('#watch_count').text(stats.watches || 0);
                 $('#favorite_count').text(stats.favorites || 0);
-                $('#message_count').text(status.pms || 0);
+                $('#message_count').text(stats.pms || 0);
             }
         });
     }

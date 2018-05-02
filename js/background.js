@@ -300,12 +300,12 @@ $(document).ready(function() {
         const stats$ = $($.parseHTML(page)).find('.message-bar-desktop').children();
 
         const stats = {
-            submissions: $(stats$[0]).text(),
-            comments: $(stats$[1]).text(),
-            journals: $(stats$[2]).text(),
-            favorites: $(stats$[3]).text(),
-            watches: $(stats$[4]).text(),
-            pms: stats$.length > 4 ? $(stats$[5]).text() : 0
+            submissions: $(stats$).text().match(/\d+S/),
+            comments: $(stats$).text().match(/\d+C/),
+            journals: $(stats$).text().match(/\d+J/),
+            favorites: $(stats$).text().match(/\d+F/),
+            watches: $(stats$).text().match(/\d+W/),
+            pms: $(stats$).text().match(/\d+N/)
         }
 
         chrome.storage.local.set({
