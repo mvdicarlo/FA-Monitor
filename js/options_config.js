@@ -67,11 +67,11 @@ $(document).ready(function() {
         if(!enabled) {
             $('#appEnabled').removeClass('btn-danger');
             $('#appEnabled').addClass('btn-success');
-            $('#appEnabled').text('Enable Notifications');
+            $('#notification_enable_status').text('Enable Notifications');
         } else {
             $('#appEnabled').removeClass('btn-success');
             $('#appEnabled').addClass('btn-danger');
-            $('#appEnabled').text('Disable Notifications');
+            $('#notification_enable_status').text('Disable Notifications');
         }
     }
 
