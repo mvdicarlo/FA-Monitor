@@ -167,7 +167,14 @@ $(document).ready(function() {
     async function showNotifications(notifications = []) {
         for (var i = 0; i < notifications.length; i++) {
             const n = notifications[i];
-            const url = await getUserIconLink(n.iconUrl);
+
+            let url = '';
+            if (n.type === NOTIFICATION_TYPES.WATCHERS) {
+              url = `http:${n.iconUrl}`;
+            } else {
+              url = await getUserIconLink(n.iconUrl);
+            }
+
             getImgData(url).then(data => {
                 const opts = generateNotificationFields(n);
                 opts.iconUrl = data;
@@ -190,7 +197,7 @@ $(document).ready(function() {
 
         if (notification.type === NOTIFICATION_TYPES.WATCHERS) {
             n.title = 'New Watcher'
-            n.msg = `${notification.username} has watched you`;
+            n.message = `${notification.username} has watched you`;
         } else if (notification.type === NOTIFICATION_TYPES.COMMENTS) {
             n.title = 'New Comment';
             n.message = `You have received a comment from ${notification.username} on "${notification.submissionName}"`;
@@ -324,13 +331,13 @@ $(document).ready(function() {
             const el = $(li[i]);
 
             const obj = {
-                type: 'watch'
+                type: NOTIFICATION_TYPES.WATCHERS
             };
 
             const children = el.find('.info')[0].children;
             obj.username = children[0].innerText
             obj.posted = moment(children[1].firstChild.title, dateFormat);
-            obj.iconUrl = el.find('img')[0].src.replace('chrome-extension', 'http');
+            obj.iconUrl = $(el.find('img')[0]).attr('src');
 
             list.push(obj);
         }
@@ -412,7 +419,7 @@ $(document).ready(function() {
 
         notifications.forEach((n) => {
             if (n.posted && n.posted.isValid()) {
-                if (now.diff(n.posted, 'seconds') <= (refreshTimer / 1000) + 3) {
+                if (now.diff(n.posted, 'seconds') <= (refreshTimer / 1000) + 4) {
                     list.push(n);
                 }
             }
