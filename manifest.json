@@ -2,7 +2,7 @@
     "name": "FA Monitor",
     "short_name": "FAM",
     "author": "Michael DiCarlo",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "manifest_version": 2,
     "description": "Monitors and notifies users of any new notifications on their Fur Affinity account (e.g. Journals, Watches, Comments).",
     "permissions": ["notifications", "tabs", "storage", "http://a.facdn.net/", "https://www.furaffinity.net/", "http://www.furaffinity.net/", "http://furaffinity.net/", "https://furaffinity.net/", "http://t.facdn.net/"],

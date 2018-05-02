@@ -178,7 +178,7 @@ $(document).ready(function() {
             getImgData(url).then(data => {
                 const opts = generateNotificationFields(n);
                 opts.iconUrl = data;
-                chrome.notifications.create(opts, (id) => {
+                chrome.notifications.create(JSON.stringify(n), opts, (id) => {
                     notificationsMap.set(id, n);
                 });
             });
@@ -419,7 +419,7 @@ $(document).ready(function() {
 
         notifications.forEach((n) => {
             if (n.posted && n.posted.isValid()) {
-                if (now.diff(n.posted, 'seconds') <= (refreshTimer / 1000) + 4) {
+                if (now.diff(n.posted, 'minutes') < 1) {
                     list.push(n);
                 }
             }
