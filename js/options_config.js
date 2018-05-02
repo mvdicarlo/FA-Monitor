@@ -18,7 +18,13 @@ $(document).ready(function() {
         });
     });
 
-    chrome.storage.local.get(['watchers', 'comments', 'shouts'], (result) => {
+    $('#favorites').click((e) => {
+        chrome.storage.local.set({
+            favorites: e.target.checked
+        });
+    });
+
+    chrome.storage.local.get(['watchers', 'comments', 'shouts', 'favorites'], (result) => {
         if (result.watchers === false) {
             $('#watchers').attr('checked', false);
         }
@@ -29,6 +35,10 @@ $(document).ready(function() {
 
         if (result.shouts === false) {
             $('#shouts').attr('checked', false);
+        }
+
+        if (result.favorites === false) {
+            $('#favorites').attr('checked', false);
         }
     });
 

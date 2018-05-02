@@ -4,8 +4,9 @@ const defaultUrl = 'https://www.furaffinity.net';
 
 const NOTIFICATION_TYPES = {
     COMMENTS: 'comments-submission',
+    FAVORITES: 'favorites',
     SHOUTS: 'shouts',
-    WATCHERS: 'watches'
+    WATCHERS: 'watches',
 };
 
 $(document).ready(function() {
@@ -19,6 +20,7 @@ $(document).ready(function() {
                     initialized: true,
                     watchers: true,
                     comments: true,
+                    favorites: true,
                     shouts: true,
                     online: false,
                     loggedIn: false,
@@ -34,7 +36,7 @@ $(document).ready(function() {
         return new Promise((resolve) => {
             const enabledOptions = [];
 
-            chrome.storage.local.get(['watchers', 'comments', 'shouts'], (result) => {
+            chrome.storage.local.get(['watchers', 'comments', 'shouts', 'favorites'], (result) => {
                 if (result.watchers === true) {
                     enabledOptions.push(NOTIFICATION_TYPES.WATCHERS);
                 }
@@ -45,6 +47,10 @@ $(document).ready(function() {
 
                 if (result.shouts === true) {
                     enabledOptions.push(NOTIFICATION_TYPES.SHOUTS);
+                }
+
+                if (result.favorites === true) {
+                    enabledOptions.push(NOTIFICATION_TYPES.FAVORITES);
                 }
             });
 
@@ -95,6 +101,13 @@ $(document).ready(function() {
                                 showNotifications(filter(shouts, now));
                             });
                     }
+
+                    if (enabledOptions.includes(NOTIFICATION_TYPES.FAVORITES)) {
+                        handleComments($(sections).find('#messages-favorites'), NOTIFICATION_TYPES.FAVORITES)
+                            .then((favorites) => {
+                                showNotifications(filter(favorites, now));
+                            });
+                    }
                 } else {
                     chrome.storage.local.set({
                         loggedIn: false,
@@ -112,8 +125,7 @@ $(document).ready(function() {
     }
 
     async function showNotifications(notifications = []) {
-        if (notifications.length === 1) {
-            const n = notifications[0];
+        notifications.forEach((n) => {
             getImgData(n.iconUrl).then(data => {
                 const opts = generateNotificationFields(n);
                 opts.iconUrl = data;
@@ -121,25 +133,7 @@ $(document).ready(function() {
                     notificationsMap.set(id, n);
                 });
             });
-        } else if (notifications.length > 1) {
-            const listOptions = {
-                type: 'list',
-                title: 'FA Notifications',
-                message: '',
-                items: [],
-                iconUrl: await getImgData(notifications[0].iconUrl)
-            };
-
-            for (var i = 0; i < notifications.length; i++) {
-                const n = notifications[i]
-                const opts = generateNotificationFields(n);
-                delete opts.type;
-
-                listOptions.items.push(opts);
-            }
-
-            chrome.notifications.create('fa-notifications', listOptions, () => {});
-        }
+        });
     }
 
     function generateNotificationFields(notification) {
@@ -164,6 +158,12 @@ $(document).ready(function() {
         } else if (notification.type === NOTIFICATION_TYPES.SHOUTS) {
             n.title = 'New Shout';
             n.message = `You have received a new shout from ${notification.username}`;
+            n.buttons.push({
+                title: 'View user'
+            });
+        } else if (notification.type === NOTIFICATION_TYPES.FAVORITES) {
+            n.title = 'New Favorite';
+            n.message = `You have received a favorite from ${notification.username} on ${notification.submissionName}`;
             n.buttons.push({
                 title: 'View user'
             });
@@ -268,7 +268,7 @@ $(document).ready(function() {
         for (var i = 0; i < li.length; i++) {
             const el = $(li[i]);
 
-            if (el.text().includes('deleted')) continue;
+            if (el.text().includes('deleted') || el.text().includes('removed')) continue;
 
             const obj = {
                 type,
@@ -291,7 +291,7 @@ $(document).ready(function() {
         return new Promise((resolve) => {
             $.get(`http://www.furaffinity.net${pageLink}`).done(page => {
                 const html = $.parseHTML(page);
-                resolve('http://' + $(html).find('.user-nav-avatar').attr('src'));
+                resolve('http:' + $(html).find('.user-nav-avatar').attr('src'));
             });
         });
     }
@@ -319,7 +319,7 @@ $(document).ready(function() {
             const notification = notificationsMap.get(notificationId);
             let url = `${defaultUrl}/msg/others`;
 
-            if (notification.type === NOTIFICATION_TYPES.SHOUTS) {
+            if (notification.type === NOTIFICATION_TYPES.SHOUTS || notification.type === NOTIFICATION_TYPES.FAVORITES) {
                 url = `${defaultUrl}${notification.userUrl}`;
             } else if (notification.type === NOTIFICATION_TYPES.COMMENTS) {
                 url = `${defaultUrl}${commentUrl}`;
