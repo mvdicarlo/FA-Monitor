@@ -24,6 +24,12 @@ $(document).ready(function() {
         });
     });
 
+    $('#journals').click((e) => {
+        chrome.storage.local.set({
+            journals: e.target.checked
+        });
+    });
+
     $('#appEnabled').click((e) => {
         chrome.storage.local.get(['appEnabled'], (result) => {
             chrome.storage.local.set({ appEnabled: !result.appEnabled});
@@ -32,7 +38,7 @@ $(document).ready(function() {
 
     });
 
-    chrome.storage.local.get(['watchers', 'comments', 'shouts', 'favorites', 'appEnabled'], (result) => {
+    chrome.storage.local.get(['watchers', 'comments', 'shouts', 'favorites', 'journals', 'appEnabled'], (result) => {
 
         showAppEnabledState(result.appEnabled);
 
@@ -50,6 +56,10 @@ $(document).ready(function() {
 
         if (result.favorites === false) {
             $('#favorites').attr('checked', false);
+        }
+
+        if (result.journals === false) {
+            $('#journals').attr('checked', false);
         }
     });
 

@@ -5,6 +5,7 @@ const defaultUrl = 'https://www.furaffinity.net';
 const NOTIFICATION_TYPES = {
     COMMENTS: 'comments-submission',
     FAVORITES: 'favorites',
+    JOURNALS: 'journals',
     SHOUTS: 'shouts',
     WATCHERS: 'watches',
 };
@@ -19,6 +20,7 @@ $(document).ready(function() {
                 chrome.storage.local.set({
                     initialized: true,
                     watchers: true,
+                    journals: true,
                     comments: true,
                     favorites: true,
                     shouts: true,
@@ -37,7 +39,7 @@ $(document).ready(function() {
         return new Promise((resolve) => {
             const enabledOptions = [];
 
-            chrome.storage.local.get(['watchers', 'comments', 'shouts', 'favorites', 'appEnabled'], (result) => {
+            chrome.storage.local.get(['watchers', 'comments', 'shouts', 'favorites', 'journals', 'appEnabled'], (result) => {
                 if (result.watchers === true) {
                     enabledOptions.push(NOTIFICATION_TYPES.WATCHERS);
                 }
@@ -52,6 +54,10 @@ $(document).ready(function() {
 
                 if (result.favorites === true) {
                     enabledOptions.push(NOTIFICATION_TYPES.FAVORITES);
+                }
+
+                if (result.journals === true) {
+                    enabledOptions.push(NOTIFICATION_TYPES.JOURNALS);
                 }
 
                 resolve(result.appEnabled ? enabledOptions : []);
@@ -107,6 +113,13 @@ $(document).ready(function() {
                         handleComments($(sections).find('#messages-favorites'), NOTIFICATION_TYPES.FAVORITES)
                             .then((favorites) => {
                                 showNotifications(filter(favorites, now));
+                            });
+                    }
+
+                    if (enabledOptions.includes(NOTIFICATION_TYPES.JOURNALS)) {
+                        handleJournals($(sections).find('#messages-journals'))
+                            .then((journals) => {
+                                showNotifications(filter(journals, now));
                             });
                     }
                 } else {
@@ -167,6 +180,12 @@ $(document).ready(function() {
             n.message = `You have received a favorite from ${notification.username} on ${notification.submissionName}`;
             n.buttons.push({
                 title: 'View user'
+            });
+        } else if (notification.type === NOTIFICATION_TYPES.JOURNALS) {
+            n.title = 'New Journal';
+            n.message = `${notification.username} has posted a new journal ${notification.journalName}`;
+            n.buttons.push({
+                title: 'View journal'
             });
         }
 
@@ -288,6 +307,32 @@ $(document).ready(function() {
         return list;
     }
 
+    async function handleJournals(section) {
+        if (!section) return [];
+
+        const list = [];
+        const li = $(section.find('li'));
+
+        for (var i = 0; i < li.length; i++) {
+            const el = $(li[i]);
+
+            if (el.text().includes('deleted') || el.text().includes('removed')) continue;
+
+            const obj = {
+                type: NOTIFICATION_TYPES.JOURNALS,
+                username: $($(el).find('a')[1]).text(),
+                posted: moment($(el).find('span').attr('title').replace('on ', ''), dateFormat),
+                journalName: $($(el).find('a')[0]).text(),
+                journalUrl: $($(el).find('a')[0]).attr('href'),
+                iconUrl: await getUserIconLink($($(el).find('a')[1]).attr('href'))
+            };
+
+            list.push(obj);
+        }
+
+        return list;
+    }
+
     function getUserIconLink(pageLink) {
         return new Promise((resolve) => {
             $.get(`http://www.furaffinity.net${pageLink}`).done(page => {
@@ -323,7 +368,9 @@ $(document).ready(function() {
             if (notification.type === NOTIFICATION_TYPES.SHOUTS || notification.type === NOTIFICATION_TYPES.FAVORITES) {
                 url = `${defaultUrl}${notification.userUrl}`;
             } else if (notification.type === NOTIFICATION_TYPES.COMMENTS) {
-                url = `${defaultUrl}${commentUrl}`;
+                url = `${defaultUrl}${notification.commentUrl}`;
+            } else if (notification.type === NOTIFICATION_TYPES.JOURNALS) {
+                url = `${defaultUrl}${notification.journalUrl}`;
             }
 
             chrome.tabs.create({
