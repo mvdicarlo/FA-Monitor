@@ -30,15 +30,23 @@ $(document).ready(function() {
         });
     });
 
+    $('#pms').click((e) => {
+        chrome.storage.local.set({
+            pms: e.target.checked
+        });
+    });
+
     $('#appEnabled').click((e) => {
         chrome.storage.local.get(['appEnabled'], (result) => {
-            chrome.storage.local.set({ appEnabled: !result.appEnabled});
+            chrome.storage.local.set({
+                appEnabled: !result.appEnabled
+            });
             showAppEnabledState(!result.appEnabled);
         });
 
     });
 
-    chrome.storage.local.get(['watchers', 'comments', 'shouts', 'favorites', 'journals', 'appEnabled'], (result) => {
+    chrome.storage.local.get(['watchers', 'comments', 'shouts', 'pms', 'favorites', 'journals', 'appEnabled'], (result) => {
 
         showAppEnabledState(result.appEnabled);
 
@@ -61,10 +69,14 @@ $(document).ready(function() {
         if (result.journals === false) {
             $('#journals').attr('checked', false);
         }
+
+        if (result.pms === false) {
+            $('#pms').attr('checked', false);
+        }
     });
 
     function showAppEnabledState(enabled) {
-        if(!enabled) {
+        if (!enabled) {
             $('#appEnabled').removeClass('btn-danger');
             $('#appEnabled').addClass('btn-success');
             $('#notification_enable_status').text('Enable Notifications');

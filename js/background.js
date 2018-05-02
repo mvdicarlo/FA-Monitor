@@ -6,6 +6,7 @@ const NOTIFICATION_TYPES = {
     COMMENTS: 'comments-submission',
     FAVORITES: 'favorites',
     JOURNALS: 'journals',
+    PMS: 'pms',
     SHOUTS: 'shouts',
     WATCHERS: 'watches',
 };
@@ -24,6 +25,7 @@ $(document).ready(function() {
                     comments: true,
                     favorites: true,
                     shouts: true,
+                    pms: true,
                     online: false,
                     loggedIn: false,
                     stats: {},
@@ -40,7 +42,7 @@ $(document).ready(function() {
         return new Promise((resolve) => {
             const enabledOptions = [];
 
-            chrome.storage.local.get(['watchers', 'comments', 'shouts', 'favorites', 'journals', 'appEnabled'], (result) => {
+            chrome.storage.local.get(['watchers', 'comments', 'shouts', 'favorites', 'journals', 'pms', 'appEnabled'], (result) => {
                 if (result.watchers === true) {
                     enabledOptions.push(NOTIFICATION_TYPES.WATCHERS);
                 }
@@ -59,6 +61,10 @@ $(document).ready(function() {
 
                 if (result.journals === true) {
                     enabledOptions.push(NOTIFICATION_TYPES.JOURNALS);
+                }
+
+                if (result.pms === true) {
+                    enabledOptions.push(NOTIFICATION_TYPES.PMS);
                 }
 
                 resolve(result.appEnabled ? enabledOptions : []);
@@ -106,6 +112,15 @@ $(document).ready(function() {
                             });
                     }
 
+                    if (enabledOptions.includes(NOTIFICATION_TYPES.PMS)) {
+                        $.get(`${defaultUrl}/msg/pms/`).done((notePage) => {
+                            handlePersonalMessages($($.parseHTML(notePage)).find('.message-center-pms-note-list-view'))
+                                .then((pms) => {
+                                    showNotifications(filter(pms, now));
+                                });
+                        })
+                    }
+
                     if (enabledOptions.includes(NOTIFICATION_TYPES.COMMENTS)) {
                         handleComments($(sections).find('#messages-comments-submission'), NOTIFICATION_TYPES.COMMENTS)
                             .then((comments) => {
@@ -150,15 +165,17 @@ $(document).ready(function() {
     }
 
     async function showNotifications(notifications = []) {
-        notifications.forEach((n) => {
-            getImgData(n.iconUrl).then(data => {
+        for (var i = 0; i < notifications.length; i++) {
+            const n = notifications[i];
+            const url = await getUserIconLink(n.iconUrl);
+            getImgData(url).then(data => {
                 const opts = generateNotificationFields(n);
                 opts.iconUrl = data;
                 chrome.notifications.create(opts, (id) => {
                     notificationsMap.set(id, n);
                 });
             });
-        });
+        }
     }
 
     function generateNotificationFields(notification) {
@@ -176,7 +193,7 @@ $(document).ready(function() {
             n.msg = `${notification.username} has watched you`;
         } else if (notification.type === NOTIFICATION_TYPES.COMMENTS) {
             n.title = 'New Comment';
-            n.message = `You have received a comment from ${notification.username} on ${notification.submissionName}`;
+            n.message = `You have received a comment from ${notification.username} on "${notification.submissionName}"`;
             n.buttons.push({
                 title: 'View comment'
             });
@@ -188,15 +205,21 @@ $(document).ready(function() {
             });
         } else if (notification.type === NOTIFICATION_TYPES.FAVORITES) {
             n.title = 'New Favorite';
-            n.message = `You have received a favorite from ${notification.username} on ${notification.submissionName}`;
+            n.message = `You have received a favorite from ${notification.username} on "${notification.submissionName}"`;
             n.buttons.push({
                 title: 'View user'
             });
         } else if (notification.type === NOTIFICATION_TYPES.JOURNALS) {
             n.title = 'New Journal';
-            n.message = `${notification.username} has posted a new journal ${notification.journalName}`;
+            n.message = `${notification.username} has posted a new journal "${notification.journalName}"`;
             n.buttons.push({
                 title: 'View journal'
+            });
+        } else if (notification.type === NOTIFICATION_TYPES.PMS) {
+            n.title = 'New Personal Message';
+            n.message = `New message from ${notification.username} (${notification.noteName})`;
+            n.buttons.push({
+                title: 'View note'
             });
         }
 
@@ -259,12 +282,36 @@ $(document).ready(function() {
             journals: $(stats$[2]).text(),
             favorites: $(stats$[3]).text(),
             watches: $(stats$[4]).text(),
-            notes: stats$.length > 4 ? $(stats$[5]).text() : ''
+            pms: stats$.length > 4 ? $(stats$[5]).text() : 0
         }
 
         chrome.storage.local.set({
             stats
         });
+    }
+
+    async function handlePersonalMessages(sections) {
+        if (!sections) return [];
+
+        const list = [];
+        const div = sections;
+
+        for (var i = 0; i < div.length; i++) {
+            const el = div[i];
+
+            const obj = {
+                type: NOTIFICATION_TYPES.PMS,
+                noteUrl: $($(el).find('a')[0]).attr('href'),
+                noteName: $($(el).find('a')[0]).text().trim(),
+                username: $($(el).find('a')[1]).text().trim(),
+                iconUrl: $($(el).find('a')[1]).attr('href'),
+                posted: moment($(el).find('.popup_date').attr('title'), dateFormat)
+            };
+
+            list.push(obj);
+        }
+
+        return list;
     }
 
     async function handleWatches(section) {
@@ -279,6 +326,7 @@ $(document).ready(function() {
             const obj = {
                 type: 'watch'
             };
+
             const children = el.find('.info')[0].children;
             obj.username = children[0].innerText
             obj.posted = moment(children[1].firstChild.title, dateFormat);
@@ -309,7 +357,7 @@ $(document).ready(function() {
                 userUrl: $($(el).find('a')[0]).attr('href'),
                 commentUrl: $($(el).find('a')[1]).attr('href'),
                 submissionName: $($(el).find('a')[1]).text(),
-                iconUrl: await getUserIconLink($($(el).find('a')[0]).attr('href'))
+                iconUrl: $($(el).find('a')[0]).attr('href')
             };
 
             list.push(obj);
@@ -335,7 +383,7 @@ $(document).ready(function() {
                 posted: moment($(el).find('span').attr('title').replace('on ', ''), dateFormat),
                 journalName: $($(el).find('a')[0]).text(),
                 journalUrl: $($(el).find('a')[0]).attr('href'),
-                iconUrl: await getUserIconLink($($(el).find('a')[1]).attr('href'))
+                iconUrl: $($(el).find('a')[1]).attr('href')
             };
 
             list.push(obj);
@@ -364,7 +412,7 @@ $(document).ready(function() {
 
         notifications.forEach((n) => {
             if (n.posted && n.posted.isValid()) {
-                if (now.diff(n.posted, 'seconds') <= (refreshTimer / 1000) + 10000000) {
+                if (now.diff(n.posted, 'seconds') <= (refreshTimer / 1000) + 3) {
                     list.push(n);
                 }
             }
@@ -388,14 +436,14 @@ $(document).ready(function() {
                 url = `${defaultUrl}${notification.commentUrl}`;
             } else if (notification.type === NOTIFICATION_TYPES.JOURNALS) {
                 url = `${defaultUrl}${notification.journalUrl}`;
+            } else if (notification.type === NOTIFICATION_TYPES.PMS) {
+                url = `${defaultUrl}${notification.noteUrl}`;
             }
 
             chrome.tabs.create({
                 url
             });
         }
-
-        console.log(notificationObj, buttonIndex);
     });
 
     chrome.notifications.onClosed.addListener((id, byUser) => {
