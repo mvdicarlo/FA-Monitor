@@ -117,6 +117,10 @@ $(document).ready(function() {
                         });
                     }
 
+                    if (faPage.includes('You currently do not have any notifications.') || !faPage.includes('messages-form')) {
+                      return;
+                    }
+
                     const sections = getSections(enabledOptions, faPage);
                     let notifications = [];
 
