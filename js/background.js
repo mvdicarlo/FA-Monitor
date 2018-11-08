@@ -1,6 +1,7 @@
 const dateFormat = "MMM Do, YYYY HH:mm a";
 const refreshTimer = 45000;
 const defaultUrl = 'https://www.furaffinity.net';
+let hasNotifiedAbout = [];
 
 const NOTIFICATION_TYPES = {
     COMMENTS: 'comments-submission',
@@ -90,6 +91,11 @@ $(document).ready(function() {
               chrome.notifications.clear(notification);
             }
           });
+        });
+
+        const now = moment();
+        hasNotifiedAbout = hasNotifiedAbout.filter(n => {
+          return now.diff(n.posted, 'minutes') <= 1;
         });
     }
 
@@ -183,9 +189,21 @@ $(document).ready(function() {
             });
     }
 
+    function hasShownNotification(notification) {
+      const json = JSON.stringify(notification);
+      for (let i = 0; i < hasNotifiedAbout.length; i++) {
+        if (JSON.stringify(hasNotifiedAbout[i]) == json) return true;
+      }
+
+      return false;
+    }
+
     async function showNotifications(notifications = []) {
-        for (var i = 0; i < notifications.length; i++) {
+        for (let i = 0; i < notifications.length; i++) {
             const n = notifications[i];
+
+            if (hasShownNotification(n)) continue;
+            hasNotifiedAbout.push(Object.assign({}, n));
 
             let url = '';
             if (n.type === NOTIFICATION_TYPES.WATCHERS) {
